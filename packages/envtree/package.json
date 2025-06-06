@@ -1,0 +1,40 @@
+{
+  "name": "envtree",
+  "version": "0.1.0",
+  "description": "Grow and load your envs. Organically.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "envtree": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src",
+    "check-types": "tsc --noEmit"
+  },
+  "keywords": [
+    "environment",
+    "tree",
+    "nodejs",
+    "env",
+    "config",
+    "dotenv"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "dotenv": "^16.3.0"
+  }
+}
