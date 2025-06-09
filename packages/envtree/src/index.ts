@@ -75,18 +75,18 @@ function getNextJsEnvFiles(
       envFiles.push(envDefault);
     }
 
+    // .env.[NODE_ENV] (environment-specific)
+    const envNodeEnv = path.join(dirPath, `.env.${nodeEnv}`);
+    if (fs.existsSync(envNodeEnv)) {
+      envFiles.push(envNodeEnv);
+    }
+
     // .env.local (local overrides for all environments except test)
     if (nodeEnv !== "test") {
       const envLocal = path.join(dirPath, ".env.local");
       if (fs.existsSync(envLocal)) {
         envFiles.push(envLocal);
       }
-    }
-
-    // .env.[NODE_ENV] (environment-specific)
-    const envNodeEnv = path.join(dirPath, `.env.${nodeEnv}`);
-    if (fs.existsSync(envNodeEnv)) {
-      envFiles.push(envNodeEnv);
     }
 
     // .env.[NODE_ENV].local (environment-specific local overrides, highest priority)
@@ -160,6 +160,7 @@ export function loadEnvTree(
 export {
   findEnvFiles,
   findEnvFilesUsingLockFiles,
-  findEnvFilesUsingWorkspaceIndicators,
+  findEnvFilesUsingWorkspaceIndicators
 } from "./workspace-utils";
 export type { EnvFileResult } from "./workspace-utils";
+
