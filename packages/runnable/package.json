@@ -1,0 +1,35 @@
+{
+  "name": "@repo/runnable",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src",
+    "check-types": "tsc --noEmit"
+  },
+  "keywords": [
+    "environment",
+    "tree",
+    "nodejs",
+    "env",
+    "config",
+    "dotenv"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "envtree": "workspace:*"
+  }
+}
