@@ -1,5 +1,8 @@
 # EnvTree 🌳
 
+[![npm version](https://badge.fury.io/js/envtree.svg)](https://badge.fury.io/js/envtree)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Grow and load your envs. Organically.
 
 EnvTree is a smart environment variable loader that automatically discovers and loads `.env` files from your current directory up to your workspace root, following Next.js environment loading conventions.
@@ -95,14 +98,14 @@ Example file structure and loading order:
 ```
 workspace-root/
 ├── .env                        # ← 1. Loaded first (lowest priority)
-├── .env.local                  # ← 2. Loaded second
-├── .env.development            # ← 3. Loaded third
+├── .env.development            # ← 2. Loaded second
+├── .env.local                  # ← 3. Loaded third
 ├── .env.development.local      # ← 4. Loaded fourth
 ├── packages/
 │   └── my-app/
 │       ├── .env                # ← 5. Loaded fifth
-│       ├── .env.local          # ← 6. Loaded sixth
-│       ├── .env.development    # ← 7. Loaded seventh
+│       ├── .env.development    # ← 6. Loaded sixth
+│       ├── .env.local          # ← 7. Loaded seventh
 │       └── .env.development.local # ← 8. Loaded last (highest priority)
 ```
 
@@ -267,6 +270,31 @@ if (result) {
   // Use result.envVars object manually
   console.log("Environment variables:", result.envVars);
 }
+```
+
+## Contributing
+
+We welcome contributions! <!-- Please see our [Contributing Guide](https://github.com/kiraki-io/envtree/blob/main/CONTRIBUTING.md) for details. -->
+
+### Issues
+
+Found a bug or have a feature request? Please [open an issue](https://github.com/kiraki-io/envtree/issues).
+
+### Development
+
+```bash
+# Clone the repository
+git clone https://github.com/kiraki-io/envtree.git
+cd envtree
+
+# Install dependencies
+pnpm install
+
+# Build the package
+pnpm build
+
+# Run in development mode
+pnpm dev
 ```
 
 ## License
