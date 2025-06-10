@@ -1,5 +1,6 @@
 {
   "name": "envtree",
+  "version": "0.1.0-beta",
   "private": true,
   "scripts": {
     "build": "turbo run build",
