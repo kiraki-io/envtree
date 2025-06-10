@@ -1,7 +1,7 @@
 import { config as dotenvConfig } from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import { findEnvFiles } from "./workspace-utils";
+import { findEnvFiles } from "./workspace-utils.js";
 
 export interface EnvTreeOptions {
   /**
@@ -108,6 +108,7 @@ export function loadEnvTree(
   options: EnvTreeOptions = {}
 ): EnvTreeResult | null {
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     convention = "nextjs",
     startDir = process.cwd(),
     setEnv = true,
@@ -160,7 +161,6 @@ export function loadEnvTree(
 export {
   findEnvFiles,
   findEnvFilesUsingLockFiles,
-  findEnvFilesUsingWorkspaceIndicators
-} from "./workspace-utils";
-export type { EnvFileResult } from "./workspace-utils";
-
+  findEnvFilesUsingWorkspaceIndicators,
+} from "./workspace-utils.js";
+export type { EnvFileResult } from "./workspace-utils.js";

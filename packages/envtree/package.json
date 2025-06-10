@@ -4,6 +4,7 @@
   "description": "Grow and load your envs. Organically.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "bin": {
     "envtree": "dist/cli.js"
   },
@@ -14,7 +15,9 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint src",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "pnpm build && pnpm lint && pnpm check-types",
+    "prepack": "pnpm build"
   },
   "keywords": [
     "environment",
@@ -35,7 +38,7 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20.0.0",
-    "eslint": "^8.0.0",
+    "eslint": "^9.28.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {

@@ -4,7 +4,7 @@ import {
   ALL_WORKSPACE_FILES,
   LOCK_FILES,
   WORKSPACE_INDICATORS,
-} from "./constants";
+} from "./constants.js";
 
 /**
  * Check if a file/directory exists
@@ -29,7 +29,7 @@ function containsAnyOfFiles(dirPath: string, files: string[]): boolean {
  * Check if a directory contains valid workspace indicators
  */
 function containsValidWorkspaceIndicators(dirPath: string): boolean {
-  return WORKSPACE_INDICATORS.some((indicator) => {
+  return WORKSPACE_INDICATORS.some((indicator: string) => {
     const fullPath = path.join(dirPath, indicator);
     return isPathAvailable(fullPath) && isValidWorkspaceConfig(fullPath);
   });

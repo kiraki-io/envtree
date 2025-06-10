@@ -1,14 +1,14 @@
 import { loadEnvTree } from "envtree";
-import path = require("path");
+import * as path from "path";
 
 export const loadAllEnv = () => {
   console.log(path.resolve());
 
   const result = loadEnvTree({
-    startDir: path.resolve()
-  })
+    startDir: path.resolve(),
+  });
 
   console.log(result);
-}
+};
 
-loadAllEnv()
+loadAllEnv();

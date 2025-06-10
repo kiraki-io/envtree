@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { EnvTreeOptions, loadEnvTree } from "./index";
+import { EnvTreeOptions, loadEnvTree } from "./index.js";
 
 const program = new Command();
 
@@ -100,8 +100,10 @@ program
   .command("info")
   .description("Show information about workspace detection")
   .argument("[dir]", "Starting directory to search from", process.cwd())
-  .action((dir) => {
-    const { compareWorkspaceDetectionMethods } = require("./workspace-utils");
+  .action(async (dir) => {
+    const { compareWorkspaceDetectionMethods } = await import(
+      "./workspace-utils.js"
+    );
     const comparison = compareWorkspaceDetectionMethods(dir);
 
     console.log("🔍 Workspace Detection Analysis");
