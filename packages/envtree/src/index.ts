@@ -142,11 +142,11 @@ export function loadEnvTree(
   // Set environment variables if requested
   if (setEnv) {
     for (const [key, value] of Object.entries(envVars)) {
-      if (process.env[key] === undefined) {
-        process.env[key] = value;
-      }
+      process.env[key] = value;
     }
   }
+
+  console.log(process.env)
 
   return {
     envVars,

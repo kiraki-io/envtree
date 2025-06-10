@@ -8,7 +8,8 @@ export const loadAllEnv = () => {
     startDir: path.resolve()
   })
 
-  console.log(result);
+  console.log(result)
+  console.log("env", process.env);
 }
 
 loadAllEnv()
