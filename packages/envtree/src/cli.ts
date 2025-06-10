@@ -27,7 +27,7 @@ program
     process.env.NODE_ENV || "development"
   )
   .option("--verbose", "Show detailed information about loaded files")
-  .action((dir, options) => {
+  .action(async (dir, options) => {
     const envTreeOptions: EnvTreeOptions = {
       convention: options.convention as "nextjs",
       startDir: dir,
@@ -35,7 +35,7 @@ program
       nodeEnv: options.nodeEnv,
     };
 
-    const result = loadEnvTree(envTreeOptions);
+    const result = await loadEnvTree(envTreeOptions);
 
     if (!result) {
       console.error("❌ No workspace root found. Could not locate .env files.");

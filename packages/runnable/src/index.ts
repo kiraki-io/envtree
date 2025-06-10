@@ -1,14 +1,24 @@
-import { loadEnvTree } from "envtree";
+import { loadEnvTree, loadEnvTreeSync } from "envtree";
 import * as path from "path";
 
-export const loadAllEnv = () => {
-  console.log(path.resolve());
+export const loadAllEnv = async () => {
 
-  const result = loadEnvTree({
+  const result = await loadEnvTree({
     startDir: path.resolve(),
   });
 
   console.log(result);
+  console.log(process.env)
 };
 
-loadAllEnv();
+export const loadAllEnvSync = () => {
+
+  const result = loadEnvTreeSync({
+    startDir: path.resolve(),
+  });
+
+  console.log(result);
+  console.log(process.env)
+};
+
+loadAllEnvSync()
