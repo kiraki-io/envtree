@@ -5,13 +5,14 @@
 
 Grow and load your envs. Organically.
 
-EnvTree is a smart environment variable loader that automatically discovers and loads `.env` files from your current directory up to your workspace root, following Next.js environment loading conventions.
+EnvTree is a smart environment variable loader that automatically discovers and loads `.env` files from your current directory up to your workspace root, following Next.js environment loading conventions. Execute any command with your environment variables loaded using the simple `envtree -- command` syntax.
 
 ## Features
 
 - 🔍 **Smart Workspace Detection**: Automatically finds your workspace root using lockfiles or workspace indicators
 - 📁 **Hierarchical Loading**: Loads `.env` files from workspace root down to current directory
 - ⚡ **Next.js Convention**: Follows Next.js environment loading strategy with proper priority
+- 🚀 **Command Execution**: Execute commands with loaded environment variables (`envtree -- command`)
 - 🛠️ **CLI & Programmatic API**: Use via command line or import in your Node.js code
 - 🎯 **TypeScript Support**: Full TypeScript support with proper type definitions
 
@@ -25,29 +26,51 @@ pnpm add envtree
 yarn add envtree
 ```
 
+## How It Works
+
+EnvTree automatically:
+
+1. 🔍 **Finds your workspace root** using lockfiles or workspace indicators
+2. 📁 **Discovers .env files** from workspace root down to your current directory
+3. ⚡ **Loads variables** following Next.js priority conventions
+4. 🚀 **Executes your command** with all environment variables available
+
+Perfect for running development commands, build scripts, tests, or any tool that needs environment variables.
+
 ## Quick Start
 
-### CLI Usage
+### Command Execution (Recommended)
 
 ```bash
-# Load .env files from current directory (default)
+# Execute any command with loaded environment variables
+npx envtree -- printenv DATABASE_URL
+npx envtree -- npm run build
+npx envtree -- node my-script.js
+npx envtree -- python manage.py runserver
+
+# With verbose output to see what's loaded
+npx envtree --verbose -- npm start
+
+# Different environments
+npx envtree --node-env production -- npm run build
+```
+
+### Basic CLI Usage
+
+```bash
+# Load and display .env files (default behavior)
 npx envtree
 
-# Load .env files from specific directory
+# Load from specific directory
 npx envtree /path/to/project
 
-# Specify environment
-npx envtree --node-env production
-
-# Show detailed information
+# Show detailed information about loaded files
 npx envtree --verbose
 
-# Dry run (don't set environment variables)
-npx envtree --no-set-env --verbose
+
 
 # Get workspace detection info
 npx envtree info
-npx envtree info /path/to/project
 ```
 
 ### Programmatic Usage
@@ -112,7 +135,7 @@ workspace-root/
 ## CLI Options
 
 ```
-Usage: envtree [options] [dir]
+Usage: envtree [options] [dir] [-- command...]
 
 Arguments:
   dir                            Starting directory to search from (default: current directory)
@@ -120,13 +143,16 @@ Arguments:
 Options:
   -V, --version                  output the version number
   -c, --convention <type>        Environment loading strategy (nextjs) (default: "nextjs")
-  --no-set-env                   Do not set environment variables, just show what would be loaded
+
   --node-env <env>               Override NODE_ENV for nextjs convention (default: "development")
   --verbose                      Show detailed information about loaded files
   -h, --help                     display help for command
 
 Commands:
   info [dir]                     Show information about workspace detection
+
+Command Execution:
+  envtree -- <command>           Execute command with loaded environment variables
 ```
 
 ## API Reference
@@ -199,38 +225,76 @@ Use `npx envtree info` to see detailed workspace detection analysis.
 
 ## Examples
 
-### Basic Usage
+### Command Execution
+
+Execute any command with loaded environment variables using the `--` syntax:
 
 ```bash
-# Load environment variables from current directory
-npx envtree
+# Common development commands
+npx envtree -- npm run dev
+npx envtree -- npm run build
+npx envtree -- npm test
 
-# From specific directory
-npx envtree /path/to/my-project
+# Node.js scripts
+npx envtree -- node server.js
+npx envtree -- node scripts/migrate.js
+
+# Other languages and tools
+npx envtree -- python manage.py runserver
+npx envtree -- cargo run
+npx envtree -- go run main.go
+
+# View environment variables
+npx envtree -- printenv DATABASE_URL
+npx envtree -- printenv API_URL
+
+# Chain multiple commands
+npx envtree -- sh -c 'printenv DATABASE_URL && npm run build'
+
+# With verbose output to see loaded files and variables
+npx envtree --verbose -- npm start
 ```
 
 ### Environment Modes
 
 ```bash
 # Development mode (default)
-npx envtree --node-env development
+npx envtree -- npm run dev
+npx envtree --node-env development -- npm start
 
 # Production mode
-npx envtree --node-env production
+npx envtree --node-env production -- npm run build
 
 # Staging mode
-npx envtree --node-env staging
+npx envtree --node-env staging -- npm run deploy
 ```
 
 ### Monorepo Usage
 
 ```bash
-# From any package in a monorepo
-npx envtree --verbose
-# Will find workspace root and load .env files from root down to current package
+# From any package in a monorepo - finds workspace root automatically
+npx envtree --verbose -- npm run build
 
 # From specific package directory
-npx envtree packages/api --verbose
+cd packages/api && npx envtree -- npm start
+
+# Run commands from workspace root for specific packages
+npx envtree -- npm run build --workspace=packages/api
+```
+
+### Basic Usage (Information Only)
+
+```bash
+# Load and display environment variables (no command execution)
+npx envtree
+
+# From specific directory
+npx envtree /path/to/my-project
+
+# Show detailed information about loaded files
+npx envtree --verbose
+
+
 ```
 
 ### Programmatic Integration

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import { spawn } from "child_process";
 import { EnvTreeOptions, loadEnvTree } from "./index.js";
 
 const program = new Command();
@@ -17,21 +18,20 @@ program
     "Environment loading strategy (nextjs)",
     "nextjs"
   )
-  .option(
-    "--no-set-env",
-    "Do not set environment variables, just show what would be loaded"
-  )
+
   .option(
     "--node-env <env>",
     "Override NODE_ENV for nextjs convention",
     process.env.NODE_ENV || "development"
   )
   .option("--verbose", "Show detailed information about loaded files")
+  .allowUnknownOption(true)
+  .allowExcessArguments(true)
   .action(async (dir, options) => {
     const envTreeOptions: EnvTreeOptions = {
       convention: options.convention as "nextjs",
       startDir: dir,
-      setEnv: options.setEnv,
+      setEnv: true, // Always set environment variables for command execution
       nodeEnv: options.nodeEnv,
     };
 
@@ -40,6 +40,16 @@ program
     if (!result) {
       console.error("❌ No workspace root found. Could not locate .env files.");
       process.exit(1);
+    }
+
+    // Check if there are arguments after "--"
+    const rawArgs = process.argv.slice(2);
+    const dashIndex = rawArgs.indexOf("--");
+    let commandToRun: string[] = [];
+
+    if (dashIndex !== -1) {
+      // Extract command after "--"
+      commandToRun = rawArgs.slice(dashIndex + 1);
     }
 
     if (options.verbose) {
@@ -54,6 +64,10 @@ program
 
     if (result.filesLoaded.length === 0) {
       console.log("⚠️  No .env files found in the workspace tree.");
+      if (commandToRun.length > 0) {
+        // Still execute the command even if no env files found
+        executeCommand(commandToRun, {});
+      }
       return;
     }
 
@@ -67,7 +81,17 @@ program
 
     const envCount = Object.keys(result.envVars).length;
 
-    if (options.setEnv) {
+    if (commandToRun.length > 0) {
+      // Execute command with loaded environment variables
+      if (options.verbose) {
+        console.log(
+          `🚀 Executing command with ${envCount} environment variables: ${commandToRun.join(" ")}`
+        );
+        console.log("");
+      }
+      executeCommand(commandToRun, result.envVars);
+    } else {
+      // Default behavior - just show what was loaded
       console.log(
         `✅ Loaded ${envCount} environment variables from ${result.filesLoaded.length} files`
       );
@@ -80,21 +104,38 @@ program
             console.log(`  ${key}=${result.envVars[key]}`);
           });
       }
-    } else {
-      console.log(
-        `📋 Found ${envCount} environment variables in ${result.filesLoaded.length} files (not set)`
-      );
-
-      if (options.verbose) {
-        console.log("\n🔑 Environment variables found:");
-        Object.keys(result.envVars)
-          .sort()
-          .forEach((key) => {
-            console.log(`  ${key}=${result.envVars[key]}`);
-          });
-      }
     }
   });
+
+/**
+ * Execute a command with the given environment variables
+ */
+function executeCommand(command: string[], envVars: Record<string, string>) {
+  if (command.length === 0) {
+    console.error("❌ No command specified");
+    process.exit(1);
+  }
+
+  const [cmd, ...args] = command;
+
+  // Merge loaded env vars with current process env
+  const env = { ...process.env, ...envVars };
+
+  const child = spawn(cmd!, args, {
+    env,
+    stdio: "inherit",
+    shell: true,
+  });
+
+  child.on("close", (code: number | null) => {
+    process.exit(code || 0);
+  });
+
+  child.on("error", (error: Error) => {
+    console.error(`❌ Failed to execute command: ${error.message}`);
+    process.exit(1);
+  });
+}
 
 program
   .command("info")
