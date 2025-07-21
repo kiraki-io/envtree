@@ -76,23 +76,23 @@ npx envtree info
 ### Programmatic Usage
 
 ```typescript
-import { loadEnvTree } from "envtree";
+import { loadEnvTree } from 'envtree';
 
 // Basic usage with defaults
 const result = loadEnvTree();
 
 // With custom options
 const result = loadEnvTree({
-  convention: "nextjs",
+  convention: 'nextjs',
   startDir: process.cwd(),
   setEnv: true,
-  nodeEnv: "development",
+  nodeEnv: 'development',
 });
 
 if (result) {
   console.log(`Loaded ${Object.keys(result.envVars).length} variables`);
-  console.log("Files loaded:", result.filesLoaded);
-  console.log("Workspace root:", result.workspaceRoot);
+  console.log('Files loaded:', result.filesLoaded);
+  console.log('Workspace root:', result.workspaceRoot);
 }
 ```
 
@@ -166,7 +166,7 @@ Loads environment variables from `.env` files in your workspace tree using Next.
 ```typescript
 interface EnvTreeOptions {
   /** Loading strategy: currently only 'nextjs' is supported */
-  convention?: "nextjs";
+  convention?: 'nextjs';
 
   /** Starting directory to search from */
   startDir?: string;
@@ -193,7 +193,7 @@ interface EnvTreeResult {
   workspaceRoot: string;
 
   /** Detection method used */
-  method: "lockfile" | "workspace-indicators";
+  method: 'lockfile' | 'workspace-indicators';
 }
 ```
 
@@ -301,40 +301,60 @@ npx envtree --verbose
 
 ```typescript
 // In your application startup
-import { loadEnvTree } from "envtree";
+import { loadEnvTree } from 'envtree';
 
 // Load environment variables before anything else
 const envResult = loadEnvTree({ setEnv: true });
 
 if (!envResult) {
-  console.error("Failed to load environment variables");
+  console.error('Failed to load environment variables');
   process.exit(1);
 }
 
-console.log(
-  `Loaded ${Object.keys(envResult.envVars).length} environment variables`
-);
+console.log(`Loaded ${Object.keys(envResult.envVars).length} environment variables`);
 
 // Your application code here
-import "./app";
+import './app';
 ```
 
 ### Custom Directory and Environment
 
 ```typescript
-import { loadEnvTree } from "envtree";
+import { loadEnvTree } from 'envtree';
 
 const result = loadEnvTree({
-  startDir: "/path/to/project",
-  nodeEnv: "production",
+  startDir: '/path/to/project',
+  nodeEnv: 'production',
   setEnv: false, // Don't set env vars, just return them
 });
 
 if (result) {
   // Use result.envVars object manually
-  console.log("Environment variables:", result.envVars);
+  console.log('Environment variables:', result.envVars);
 }
 ```
+
+### Ability to filter variables by a prefix
+
+```typescript
+import { loadEnvTreeSync } from 'envtree';
+import * as path from 'path';
+
+const result = loadEnvTreeSync({
+  startDir: path.resolve(),
+  prefixFilter: 'NEXT_PUBLIC_',
+});
+
+console.log(result.envVars); // Only variables starting with NEXT_PUBLIC_
+```
+
+## Options
+
+- `startDir`: Directory to start searching for `.env` files.
+- `convention`: Loading strategy (default: `nextjs`).
+- `setEnv`: Whether to set variables in `process.env` (default: `true`).
+- `nodeEnv`: Custom environment name (default: `process.env.NODE_ENV`).
+- `prefixFilter`: Only include variables with this prefix.
 
 ## Contributing
 

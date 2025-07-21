@@ -1,16 +1,16 @@
-import * as fs from "fs";
-import * as path from "path";
-import { parse as parseDotenv } from "dotenv";
-import { readFile } from "node:fs/promises"
-import { readFileSync } from "node:fs"
-import { findEnvFiles } from "./workspace-utils.js";
+import { parse as parseDotenv } from 'dotenv';
+import * as fs from 'fs';
+import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import * as path from 'path';
+import { findEnvFiles } from './workspace-utils.js';
 
 export interface EnvTreeOptions {
   /**
    * The convention of environment loading strategy to use
    * - 'nextjs': Loads .env files in Next.js order (.env, .env.local, .env.[NODE_ENV], .env.[NODE_ENV].local)
    */
-  convention?: "nextjs";
+  convention?: 'nextjs';
 
   /**
    * Starting directory to search from
@@ -26,13 +26,18 @@ export interface EnvTreeOptions {
    * Custom environment (for nextjs convention)
    */
   nodeEnv?: string;
+
+  /**
+   * Only include env vars with this prefix (e.g. "NEXT_PUBLIC_")
+   */
+  prefixFilter?: string;
 }
 
 export interface EnvTreeResult {
   envVars: Record<string, string>;
   filesLoaded: string[];
   workspaceRoot: string;
-  method: "lockfile" | "workspace-indicators";
+  method: 'lockfile' | 'workspace-indicators';
 }
 
 /**
@@ -41,7 +46,7 @@ export interface EnvTreeResult {
 async function parseEnvFile(filePath: string): Promise<Record<string, string>> {
   try {
     const result = await readFile(filePath, 'utf8');
-    return parseDotenv(result)
+    return parseDotenv(result);
   } catch (error) {
     console.warn(`Warning: Could not parse ${filePath}:`, error);
     return {};
@@ -54,7 +59,7 @@ async function parseEnvFile(filePath: string): Promise<Record<string, string>> {
 function parseEnvFileSync(filePath: string): Record<string, string> {
   try {
     const result = readFileSync(filePath, 'utf8');
-    return parseDotenv(result)
+    return parseDotenv(result);
   } catch (error) {
     console.warn(`Warning: Could not parse ${filePath}:`, error);
     return {};
@@ -67,7 +72,7 @@ function parseEnvFileSync(filePath: string): Record<string, string> {
 function getNextJsEnvFiles(
   workspaceRoot: string,
   currentDir: string,
-  nodeEnv: string = process.env.NODE_ENV || "development"
+  nodeEnv: string = process.env.NODE_ENV || 'development',
 ): string[] {
   const envFiles: string[] = [];
 
@@ -85,7 +90,7 @@ function getNextJsEnvFiles(
   // For each directory, check for .env files in Next.js priority order
   for (const dirPath of dirs) {
     // .env.[NODE_ENV].local (environment-specific local overrides, highest priority)
-    if (nodeEnv !== "test") {
+    if (nodeEnv !== 'test') {
       const envNodeEnvLocal = path.join(dirPath, `.env.${nodeEnv}.local`);
       if (fs.existsSync(envNodeEnvLocal)) {
         envFiles.push(envNodeEnvLocal);
@@ -93,8 +98,8 @@ function getNextJsEnvFiles(
     }
 
     // .env.local (local overrides for all environments except test)
-    if (nodeEnv !== "test") {
-      const envLocal = path.join(dirPath, ".env.local");
+    if (nodeEnv !== 'test') {
+      const envLocal = path.join(dirPath, '.env.local');
       if (fs.existsSync(envLocal)) {
         envFiles.push(envLocal);
       }
@@ -107,7 +112,7 @@ function getNextJsEnvFiles(
     }
 
     // .env (base configuration)
-    const envDefault = path.join(dirPath, ".env");
+    const envDefault = path.join(dirPath, '.env');
     if (fs.existsSync(envDefault)) {
       envFiles.push(envDefault);
     }
@@ -117,17 +122,24 @@ function getNextJsEnvFiles(
 }
 
 /**
+ * Filter environment variables by prefix
+ */
+function filterByPrefix(envVars: Record<string, string>, prefix?: string): Record<string, string> {
+  if (!prefix) return envVars;
+  return Object.fromEntries(Object.entries(envVars).filter(([key]) => key.startsWith(prefix)));
+}
+
+/**
  * Asynchronously load and merge environment variables from .env files
  */
-export async function loadEnvTree(
-  options: EnvTreeOptions = {}
-): Promise<EnvTreeResult | null> {
+export async function loadEnvTree(options: EnvTreeOptions = {}): Promise<EnvTreeResult | null> {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    convention = "nextjs",
+    convention = 'nextjs',
     startDir = process.cwd(),
     setEnv = true,
-    nodeEnv = process.env.NODE_ENV || "development",
+    nodeEnv = process.env.NODE_ENV || 'development',
+    prefixFilter,
   } = options;
 
   // Find .env files using workspace utilities
@@ -137,11 +149,7 @@ export async function loadEnvTree(
   }
 
   // Use Next.js loading strategy (currently the only supported convention)
-  const filesToLoad = getNextJsEnvFiles(
-    result.workspaceRoot,
-    startDir,
-    nodeEnv
-  );
+  const filesToLoad = getNextJsEnvFiles(result.workspaceRoot, startDir, nodeEnv);
 
   // Load and merge environment variables
   const envVars: Record<string, string> = {};
@@ -155,9 +163,12 @@ export async function loadEnvTree(
     }
   }
 
+  // Filter by prefix if specified
+  const filteredEnvVars = filterByPrefix(envVars, prefixFilter);
+
   // Set environment variables if requested
   if (setEnv) {
-    for (const [key, value] of Object.entries(envVars)) {
+    for (const [key, value] of Object.entries(filteredEnvVars)) {
       if (process.env[key] === undefined) {
         process.env[key] = value;
       }
@@ -165,7 +176,7 @@ export async function loadEnvTree(
   }
 
   return {
-    envVars,
+    envVars: filteredEnvVars,
     filesLoaded,
     workspaceRoot: result.workspaceRoot,
     method: result.method,
@@ -175,15 +186,14 @@ export async function loadEnvTree(
 /**
  * Synchronously load and merge environment variables from .env files
  */
-export function loadEnvTreeSync(
-    options: EnvTreeOptions = {}
-): EnvTreeResult | null {
+export function loadEnvTreeSync(options: EnvTreeOptions = {}): EnvTreeResult | null {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    convention = "nextjs",
+    convention = 'nextjs',
     startDir = process.cwd(),
     setEnv = true,
-    nodeEnv = process.env.NODE_ENV || "development",
+    nodeEnv = process.env.NODE_ENV || 'development',
+    prefixFilter,
   } = options;
 
   // Find .env files using workspace utilities
@@ -193,11 +203,7 @@ export function loadEnvTreeSync(
   }
 
   // Use Next.js loading strategy (currently the only supported convention)
-  const filesToLoad = getNextJsEnvFiles(
-      result.workspaceRoot,
-      startDir,
-      nodeEnv
-  );
+  const filesToLoad = getNextJsEnvFiles(result.workspaceRoot, startDir, nodeEnv);
 
   // Load and merge environment variables
   const envVars: Record<string, string> = {};
@@ -211,9 +217,12 @@ export function loadEnvTreeSync(
     }
   }
 
+  // Filter by prefix if specified
+  const filteredEnvVars = filterByPrefix(envVars, prefixFilter);
+
   // Set environment variables if requested
   if (setEnv) {
-    for (const [key, value] of Object.entries(envVars)) {
+    for (const [key, value] of Object.entries(filteredEnvVars)) {
       if (process.env[key] === undefined) {
         process.env[key] = value;
       }
@@ -221,7 +230,7 @@ export function loadEnvTreeSync(
   }
 
   return {
-    envVars,
+    envVars: filteredEnvVars,
     filesLoaded,
     workspaceRoot: result.workspaceRoot,
     method: result.method,
@@ -233,5 +242,5 @@ export {
   findEnvFiles,
   findEnvFilesUsingLockFiles,
   findEnvFilesUsingWorkspaceIndicators,
-} from "./workspace-utils.js";
-export type { EnvFileResult } from "./workspace-utils.js";
+} from './workspace-utils.js';
+export type { EnvFileResult } from './workspace-utils.js';
