@@ -31,6 +31,11 @@ export interface EnvTreeOptions {
    * Only include env vars with this prefix (e.g. "NEXT_PUBLIC_")
    */
   prefixFilter?: string;
+
+  /**
+   * Enable detailed logging of all actions performed while loading envs
+   */
+  verbose?: boolean;
 }
 
 export interface EnvTreeResult {
@@ -140,40 +145,81 @@ export async function loadEnvTree(options: EnvTreeOptions = {}): Promise<EnvTree
     setEnv = true,
     nodeEnv = process.env.NODE_ENV || 'development',
     prefixFilter,
+    verbose = false,
   } = options;
 
-  // Find .env files using workspace utilities
+  const log = (...args: unknown[]) => {
+    if (verbose) {
+      console.log('🌿 [envtree]', ...args);
+    }
+  };
+
+  log('Starting loadEnvTree with options:', {
+    startDir,
+    nodeEnv,
+    prefixFilter,
+  });
+
+  log('Searching for workspace root and .env files ...');
   const result = findEnvFiles(startDir);
   if (!result) {
+    log('No workspace root found');
     return null;
   }
 
+  log(`Workspace root detected via ${result.method}:`, result.workspaceRoot);
+
   // Use Next.js loading strategy (currently the only supported convention)
   const filesToLoad = getNextJsEnvFiles(result.workspaceRoot, startDir, nodeEnv);
+  log('Resolved candidate .env files (highest priority first):');
+  filesToLoad.forEach((f, i) => log(`  ${i + 1}. ${f}`));
 
   // Load and merge environment variables
   const envVars: Record<string, string> = {};
   const filesLoaded: string[] = [];
 
-  for (const filePath of filesToLoad.reverse()) {
+  const loadOrder = [...filesToLoad].reverse();
+  log('Final load order (base to highest priority):');
+  loadOrder.forEach((f, i) => log(`  ${i + 1}. ${f}`));
+
+  for (const filePath of loadOrder) {
     if (fs.existsSync(filePath)) {
+      log('Parsing file:', filePath);
       const parsed = await parseEnvFile(filePath);
+      const beforeCount = Object.keys(envVars).length;
       Object.assign(envVars, parsed);
+      const afterCount = Object.keys(envVars).length;
       filesLoaded.push(filePath);
+      log('Merged variables from', path.basename(filePath), `(+${afterCount - beforeCount})`);
     }
   }
 
   // Filter by prefix if specified
   const filteredEnvVars = filterByPrefix(envVars, prefixFilter);
+  if (prefixFilter) {
+    log(
+      `Applied prefix filter "${prefixFilter}" -> kept ${Object.keys(filteredEnvVars).length} of ${
+        Object.keys(envVars).length
+      } variables`,
+    );
+  }
 
   // Set environment variables if requested
   if (setEnv) {
+    let setCount = 0;
     for (const [key, value] of Object.entries(filteredEnvVars)) {
       if (process.env[key] === undefined) {
         process.env[key] = value;
+        log(`Set ${key} = ${value}, old value: ${process.env[key]}`);
+        setCount += 1;
       }
     }
+    log(`Set ${setCount} new variables on process.env`);
   }
+
+  log(
+    `Completed loading: ${Object.keys(filteredEnvVars).length} variables from ${filesLoaded.length} files`,
+  );
 
   return {
     envVars: filteredEnvVars,

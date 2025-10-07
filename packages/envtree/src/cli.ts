@@ -26,7 +26,16 @@ program
       startDir: dir,
       setEnv: true, // Always set environment variables for command execution
       nodeEnv: options.nodeEnv,
+      verbose: options.verbose,
     };
+
+    if (options.verbose) {
+      console.log('🌳 EnvTree - CLI invoked with:');
+      console.log(`📋 Convention: ${options.convention}`);
+      console.log(`📂 Starting directory: ${dir}`);
+      console.log(`🌍 NODE_ENV: ${options.nodeEnv}`);
+      console.log('');
+    }
 
     const result = await loadEnvTree(envTreeOptions);
 
@@ -49,9 +58,6 @@ program
       console.log(`🌳 EnvTree - Loading environment variables`);
       console.log(`📁 Workspace root: ${result.workspaceRoot}`);
       console.log(`🔍 Detection method: ${result.method}`);
-      console.log(`📋 Convention: ${options.convention}`);
-      console.log(`📂 Starting directory: ${dir}`);
-      console.log(`🌍 NODE_ENV: ${options.nodeEnv}`);
       console.log('');
     }
 
