@@ -9,7 +9,7 @@ const program = new Command();
 program.name('envtree').description('Grow and load your envs. Organically.').version('0.1.0');
 
 program
-  .argument('[dir]', 'Starting directory to search from', process.cwd())
+  .option('--dir <dir>', 'Starting directory to search from', process.cwd())
   .option('-c, --convention <type>', 'Environment loading strategy (nextjs)', 'nextjs')
 
   .option(
@@ -20,7 +20,8 @@ program
   .option('--verbose', 'Show detailed information about loaded files')
   .allowUnknownOption(true)
   .allowExcessArguments(true)
-  .action(async (dir, options) => {
+  .action(async (options) => {
+    const dir = options.dir;
     const envTreeOptions: EnvTreeOptions = {
       convention: options.convention as 'nextjs',
       startDir: dir,
@@ -139,8 +140,9 @@ function executeCommand(command: string[], envVars: Record<string, string>) {
 program
   .command('info')
   .description('Show information about workspace detection')
-  .argument('[dir]', 'Starting directory to search from', process.cwd())
-  .action(async (dir) => {
+  .option('--dir <dir>', 'Starting directory to search from', process.cwd())
+  .action(async (options) => {
+    const dir = options.dir;
     const { compareWorkspaceDetectionMethods } = await import('./workspace-utils.js');
     const comparison = compareWorkspaceDetectionMethods(dir);
 
